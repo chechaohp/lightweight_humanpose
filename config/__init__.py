@@ -4,6 +4,6 @@
 # Written by Bin Xiao (Bin.Xiao@microsoft.com)
 # ------------------------------------------------------------------------------
 
-from .default import _C as cfg
-from .default import update_config
-from .default import check_config
+from .default import cfg
+# from .default import update_config
+# from .default import check_config
