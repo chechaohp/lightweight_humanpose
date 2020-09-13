@@ -17,8 +17,7 @@ from utils.utils import AverageMeter
 from utils.vis import save_debug_images
 
 
-def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
-             output_dir, tb_log_dir, writer_dict, teacher, fp16=False):
+def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
     logger = logging.getLogger("Training")
 
     batch_time = AverageMeter()
@@ -37,9 +36,9 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
         data_time.update(time.time() - end)
 
         # compute student output
-        student_outputs = model(images)
+        student_outputs = model(images.to('cuda'))
         # compute teacher output
-        teacher_outputs = teacher(images)
+        teacher_outputs = teacher(images.to('cuda'))
 
         heatmaps = list(map(lambda x: x.cuda(non_blocking=True), heatmaps))
         masks = list(map(lambda x: x.cuda(non_blocking=True), masks))
@@ -92,10 +91,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
         loss = student_loss * alpha + (1-alpha) * teacher_loss
         # compute gradient and do update step
         optimizer.zero_grad()
-        if fp16:
-            optimizer.backward(loss)
-        else:
-            loss.backward()
+        loss.backward()
         optimizer.step()
 
         # measure elapsed time
@@ -118,35 +114,6 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch,
                   )
             logger.info(msg)
 
-            writer = writer_dict['writer']
-            global_steps = writer_dict['train_global_steps']
-            for idx in range(cfg.LOSS.NUM_STAGES):
-                writer.add_scalar(
-                    'train_stage{}_heatmaps_loss'.format(i),
-                    heatmaps_loss_meter[idx].val,
-                    global_steps
-                )
-                writer.add_scalar(
-                    'train_stage{}_push_loss'.format(idx),
-                    push_loss_meter[idx].val,
-                    global_steps
-                )
-                writer.add_scalar(
-                    'train_stage{}_pull_loss'.format(idx),
-                    pull_loss_meter[idx].val,
-                    global_steps
-                )
-            writer_dict['train_global_steps'] = global_steps + 1
-
-            prefix = '{}_{}'.format(os.path.join(output_dir, 'train'), i)
-            for scale_idx in range(len(student_outputs)):
-                prefix_scale = prefix + '_output_{}'.format(
-                    cfg.DATASET.OUTPUT_SIZE[scale_idx]
-                )
-                save_debug_images(
-                    cfg, images, heatmaps[scale_idx], masks[scale_idx],
-                    student_outputs[scale_idx], prefix_scale
-                )
 
 
 def _get_loss_info(loss_meters, loss_name):
