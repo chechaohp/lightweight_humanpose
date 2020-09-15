@@ -49,7 +49,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
         # student loss
         # loss = loss_factory(student_outputs, heatmaps, masks)
         student_heatmaps_losses, student_push_losses, student_pull_losses, student_teacher_losses = \
-            loss_factory(student_outputs, heatmaps, masks, joints)
+            loss_factory(student_outputs, heatmaps, masks, joints, teacher_outputs)
         # teaccher_loss
         teacher_loss = 0
 
