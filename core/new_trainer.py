@@ -16,6 +16,7 @@ import time
 from utils.utils import AverageMeter
 from utils.vis import save_debug_images
 
+from core.loss import TeacherStudentLoss
 
 def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
     logger = logging.getLogger("Training")
@@ -26,6 +27,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
     heatmaps_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
     push_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
     pull_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
+    teacher_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
 
     # switch to train mode
     model.train()
@@ -46,13 +48,11 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
 
         # student loss
         # loss = loss_factory(student_outputs, heatmaps, masks)
-        student_heatmaps_losses, student_push_losses, student_pull_losses = \
+        student_heatmaps_losses, student_push_losses, student_pull_losses, student_teacher_losses = \
             loss_factory(student_outputs, heatmaps, masks, joints)
         # teaccher_loss
-        teacher_heatmaps_losses, teacher_push_losses, teacher_pull_losses = \
-            loss_factory(teacher_outputs, heatmaps, masks, joints)
+        teacher_loss = 0
 
-        loss = 0
 
         student_loss = 0
         for idx in range(cfg.LOSS.NUM_STAGES):
@@ -75,17 +75,13 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, teacher):
                     )
                     student_loss = student_loss + pull_loss
 
-        teacher_loss = 0
-        for idx in range(cfg.LOSS.NUM_STAGES):
-            if teacher_heatmaps_losses[idx] is not None:
-                heatmaps_loss = teacher_heatmaps_losses[idx].mean(dim=0)
-                teacher_loss = teacher_loss + heatmaps_loss
-                if teacher_push_losses[idx] is not None:
-                    push_loss = teacher_push_losses[idx].mean(dim=0)
-                    teacher_loss = teacher_loss + push_loss
-                if teacher_pull_losses[idx] is not None:
-                    pull_loss = teacher_pull_losses[idx].mean(dim=0)
-                    teacher_loss = teacher_loss + pull_loss
+                if student_teacher_losses[idx] is not None:
+                    student_teacher_loss = student_teacher_losses[idx].mean(dim=0)
+                    teacher_loss_meter[idx].update(
+                        student_teacher_loss.item(), images.size(0)
+                    )
+                    teacher_loss = teacher_loss + student_teacher_loss
+
 
         alpha = 0.5
         loss = student_loss * alpha + (1-alpha) * teacher_loss
