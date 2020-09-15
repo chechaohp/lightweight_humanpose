@@ -26,6 +26,18 @@ def make_input(t, requires_grad=False, need_cuda=True):
     return inp
 
 
+class TeacherStudentLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, student_heatmap, teacher_heatmap, mask):
+        assert student_heatmap.size() == teacher_heatmap.size()
+        loss = ((student_heatmap - teacher_heatmap)**2) * mask[:, None, :, :].expand_as(teacher_heatmap)
+        loss = loss.mean(dim=3).mean(dim=2).mean(dim=1)
+        # loss = loss.mean(dim=3).mean(dim=2).sum(dim=1)
+        return loss
+
+
 class HeatmapLoss(nn.Module):
     def __init__(self):
         super().__init__()
@@ -148,17 +160,22 @@ class LossFactory(nn.Module):
             self.push_loss_factor = cfg.LOSS.PUSH_LOSS_FACTOR
             self.pull_loss_factor = cfg.LOSS.PULL_LOSS_FACTOR
 
+        self.student_teacher_loss = TeacherStudentLoss()
+
         if not self.heatmaps_loss and not self.ae_loss:
             logger.error('At least enable one loss!')
 
-    def forward(self, outputs, heatmaps, masks, joints):
+    def forward(self, outputs, heatmaps, masks, joints, teacher_outputs):
         # TODO(bowen): outputs and heatmaps can be lists of same length
         heatmaps_pred = outputs[:, :self.num_joints]
         tags_pred = outputs[:, self.num_joints:]
 
+        heatmap_teacher = teacher_outputs[:,:self.num_joints]
+
         heatmaps_loss = None
         push_loss = None
         pull_loss = None
+        student_teacher_loss = None
 
         if self.heatmaps_loss is not None:
             heatmaps_loss = self.heatmaps_loss(heatmaps_pred, heatmaps, masks)
@@ -172,7 +189,10 @@ class LossFactory(nn.Module):
             push_loss = push_loss * self.push_loss_factor
             pull_loss = pull_loss * self.pull_loss_factor
 
-        return [heatmaps_loss], [push_loss], [pull_loss]
+        if self.student_teacher_loss is not None:
+            student_teacher_loss = self.student_teacher_loss(heatmaps_pred,heatmap_teacher)
+
+        return [heatmaps_loss], [push_loss], [pull_loss], [student_teacher_loss]
 
 
 class MultiLossFactory(nn.Module):
@@ -201,29 +221,49 @@ class MultiLossFactory(nn.Module):
                     for with_ae_loss in cfg.LOSS.WITH_AE_LOSS
                 ]
             )
+
+        self.student_teacher_loss = \
+            nn.ModuleList(
+                [
+                    TeacherStudentLoss() if with_heatmaps_loss else None
+                    for with_heatmaps_loss in cfg.LOSS.WITH_HEATMAPS_LOSS
+                ]
+            )
         self.push_loss_factor = cfg.LOSS.PUSH_LOSS_FACTOR
         self.pull_loss_factor = cfg.LOSS.PULL_LOSS_FACTOR
 
-    def forward(self, outputs, heatmaps, masks, joints):
+    def forward(self, outputs, heatmaps, masks, joints, teacher_outputs):
         # forward check
         self._forward_check(outputs, heatmaps, masks, joints)
 
         heatmaps_losses = []
         push_losses = []
         pull_losses = []
+        student_teacher_losses = []
+
         for idx in range(len(outputs)):
             offset_feat = 0
             if self.heatmaps_loss[idx]:
                 heatmaps_pred = outputs[idx][:, :self.num_joints]
+
+                heatmap_teacher = teacher_outputs[idx][:, :self.num_joints]
+
                 offset_feat = self.num_joints
 
                 heatmaps_loss = self.heatmaps_loss[idx](
                     heatmaps_pred, heatmaps[idx], masks[idx]
                 )
+
+                student_teacher_loss = self.student_teacher_loss[idx](
+                    heatmaps_pred, heatmap_teacher, masks[idx]
+                )
+
                 heatmaps_loss = heatmaps_loss * self.heatmaps_loss_factor[idx]
                 heatmaps_losses.append(heatmaps_loss)
+                student_teacher_losses.append(student_teacher_loss)
             else:
                 heatmaps_losses.append(None)
+                student_teacher_losses.append(None)
 
             if self.ae_loss[idx]:
                 tags_pred = outputs[idx][:, offset_feat:]
@@ -242,7 +282,7 @@ class MultiLossFactory(nn.Module):
                 push_losses.append(None)
                 pull_losses.append(None)
 
-        return heatmaps_losses, push_losses, pull_losses
+        return heatmaps_losses, push_losses, pull_losses, student_teacher_losses
 
     def _init_check(self, cfg):
         assert isinstance(cfg.LOSS.WITH_HEATMAPS_LOSS, (list, tuple)), \
