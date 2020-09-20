@@ -142,7 +142,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                 )
                 save_debug_images(
                     cfg, images, heatmaps[scale_idx], masks[scale_idx],
-                    student_outputs[scale_idx], prefix_scale
+                    student_outputs[scale_idx],teacher_outputs[scale_idx], prefix_scale
                 )
 
 
