@@ -82,7 +82,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                     teacher_loss = teacher_loss + student_teacher_loss
 
 
-        alpha = 0.5
+        alpha = cfg.TRAIN.TEACHER_WEIGHT
         loss = student_loss * alpha + (1-alpha) * teacher_loss
         # compute gradient and do update step
         optimizer.zero_grad()
@@ -99,16 +99,18 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                   'Time: {batch_time.val:.3f}s ({batch_time.avg:.3f}s)\t' \
                   'Speed: {speed:.1f} samples/s\t' \
                   'Data: {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
-                  '{heatmaps_loss}{push_loss}{pull_loss}'.format(
+                  '{heatmaps_loss}{push_loss}{pull_loss}{teacher_loss}'.format(
                       epoch, i, len(data_loader),
                       batch_time=batch_time,
                       speed=images.size(0)/batch_time.val,
                       data_time=data_time,
                       heatmaps_loss=_get_loss_info(heatmaps_loss_meter, 'heatmaps'),
                       push_loss=_get_loss_info(push_loss_meter, 'push'),
-                      pull_loss=_get_loss_info(pull_loss_meter, 'pull')
+                      pull_loss=_get_loss_info(pull_loss_meter, 'pull'),
+                      teacher_loss=_get_loss_info(teacher_loss_meter,'teacher')
                   )
             logger.info(msg)
+            logger.info("Total losses:" + str(loss))
 
             writer = writer_dict['writer']
             global_steps = writer_dict['train_global_steps']
