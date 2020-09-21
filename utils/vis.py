@@ -223,11 +223,18 @@ def save_debug_images(
     batch_pred_tagmaps = batch_outputs[:, num_joints:, :, :]
 
     teacher_pred_heatmaps = teacher_outputs[:, :num_joints, :, :]
+    teacher_pred_tagmaps = teacher_outputs[:, num_joints:, :, :]
 
     if True:
         file_name = '{}_hm_pred_teacher.jpg'.format(prefix)
         save_batch_maps(
             batch_images, teacher_pred_heatmaps, batch_masks, file_name, 'heatmap'
+        )
+        
+    if True:
+        file_name = '{}_tag_pred_teacher.jpg'.format(prefix)
+        save_batch_maps(
+            batch_images, teacher_pred_tagmaps, batch_masks, file_name, 'tagmap'
         )
 
     if config.DEBUG.SAVE_HEATMAPS_GT and batch_heatmaps is not None:
