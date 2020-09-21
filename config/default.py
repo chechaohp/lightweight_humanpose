@@ -135,6 +135,8 @@ cfg.TRAIN.CHECKPOINT = ''
 cfg.TRAIN.IMAGES_PER_GPU = 12
 cfg.TRAIN.SHUFFLE = True
 
+cfg.TRAIN.TEACHER_WEIGHT = 0.9
+
 # testing
 cfg.TEST = CN()
 
