@@ -50,7 +50,6 @@ def main():
     for param in pre_train_model.parameters():
         param.requires_grad = False
 
-
     # student = PoseHigherResolutionNet(new_cfg)
     student_cfg = get_student_cfg(cfg,args)
     student = PoseHigherResolutionNet(student_cfg)
