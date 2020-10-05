@@ -108,7 +108,7 @@ def main():
             )
 
     student.to(device)
-    for epoch in range(20,30):
+    for epoch in range(begin_epoch, end_epoch):
         start = time.time()
         do_train(cfg,student,train_loader,loss_factory,optimizer,epoch,final_output_dir,writer_dict, pre_train_model,device)
         print('epoch',epoch,':',round((time.time() - start)/60,2),'minutes')
