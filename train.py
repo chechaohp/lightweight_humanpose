@@ -38,7 +38,7 @@ def count_parameters(model):
 def main():
     args = get_args()
     # create teacher
-    download_pretrain_model()
+    download_coco_dataset()
     download_pretrain_model()
     model_path = './pose_higher_hrnet_w32_512_2.pth'
     pre_train_model = PoseHigherResolutionNet(cfg)
