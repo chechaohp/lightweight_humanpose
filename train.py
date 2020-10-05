@@ -1,4 +1,4 @@
-from config import cfg, update_config
+from config import cfg, get_student_cfg
 from system_cmd import download_coco_dataset, download_pretrain_model
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
@@ -38,6 +38,8 @@ def count_parameters(model):
 def main():
     args = get_args()
     # create teacher
+    download_pretrain_model()
+    download_pretrain_model()
     model_path = './pose_higher_hrnet_w32_512_2.pth'
     pre_train_model = PoseHigherResolutionNet(cfg)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -48,7 +50,9 @@ def main():
     for param in pre_train_model.parameters():
         param.requires_grad = False
 
+
     # student = PoseHigherResolutionNet(new_cfg)
+    student_cfg = get_student_cfg(cfg,args)
     student = PoseHigherResolutionNet(student_cfg)
     student = torch.nn.DataParallel(student)
 
@@ -67,7 +71,7 @@ def main():
 
 
     train_loader = make_dataloader(cfg,True,False)
-    iteration = 1
+    # iteration = 1
 
     loss_factory = MultiLossFactory(cfg).cuda()
 
@@ -111,10 +115,10 @@ def main():
                 last_epoch=last_epoch
             )
 
-    student.to(device)
+    student.to(dev)
     for epoch in range(begin_epoch, end_epoch):
         start = time.time()
-        do_train(cfg,student,train_loader,loss_factory,optimizer,epoch,final_output_dir,writer_dict, pre_train_model,device)
+        do_train(cfg,student,train_loader,loss_factory,optimizer,epoch,final_output_dir,writer_dict, pre_train_model,dev)
         print('epoch',epoch,':',round((time.time() - start)/60,2),'minutes')
         # In PyTorch 1.1.0 and later, you should call `lr_scheduler.step()` after `optimizer.step()`.
         lr_scheduler.step()

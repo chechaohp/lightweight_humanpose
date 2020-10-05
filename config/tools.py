@@ -1,5 +1,6 @@
 import os
 import yaml
+import copy
 
 def get_student_cfg(cfg,args):
     if os.path.exists(args.student_file):

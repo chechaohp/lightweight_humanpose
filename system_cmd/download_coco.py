@@ -18,3 +18,4 @@ def download_coco_dataset():
     os.system('unzip -qq stuff_annotations_trainval2017.zip')
     os.system('rm annotations_trainval2017.zip')
     os.system('cd ..')
+    os.system('clear')
