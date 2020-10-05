@@ -1,4 +1,5 @@
-from config import cfg
+from config import cfg, update_config
+from system_cmd import download_coco_dataset, download_pretrain_model
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch
@@ -16,16 +17,18 @@ from tensorboardX import SummaryWriter
 
 from dataset import make_dataloader
 import time
+import copy
+import yaml
+import os
 
 import argparse
 
 
 def get_args():
-    pass
-
-
-def get_student_cfg():
-    pass
+    parser = argparse.ArgumentParser(description='Run Linear Classifer.')
+    parser.add_argument('--student_file', default=5,help="Number of training epoch")
+    args = parser.parse_args()
+    return args
 
 
 def count_parameters(model):
@@ -33,6 +36,7 @@ def count_parameters(model):
 
 
 def main():
+    args = get_args()
     # create teacher
     model_path = './pose_higher_hrnet_w32_512_2.pth'
     pre_train_model = PoseHigherResolutionNet(cfg)

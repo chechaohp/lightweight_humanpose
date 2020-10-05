@@ -5,5 +5,6 @@
 # ------------------------------------------------------------------------------
 
 from .default import cfg
+from .tools import get_student_cfg
 # from .default import update_config
 # from .default import check_config
