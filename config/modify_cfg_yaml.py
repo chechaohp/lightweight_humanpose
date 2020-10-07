@@ -54,7 +54,7 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     cfg_tree['OUTPUT_DIR'] = OUTPUT_DIR
     cfg_tree['DATA_DIR'] = DATA_DIR
     
-    cfg_extra['STEM_INPLANES'] = new_var.NUM_CHANNELS * 2    
+    cfg_extra['STEM_INPLANES'] = NUM_CHANNELS * 2    
 
     for i in range(NO_STAGE):
         cfg_extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = NUM_MODULES[i]
