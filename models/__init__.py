@@ -9,3 +9,4 @@ from __future__ import division
 from __future__ import print_function
 
 import models.pose_higher_hrnet
+from .hhrnet import HHRNet
