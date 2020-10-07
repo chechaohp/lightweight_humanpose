@@ -1,60 +1,72 @@
-from yacs.config import CfgNode as CN
 import numpy as np
 import copy
-import yaml
-
-def create_var(NUM_CHANNELS, NO_STAGE, TYPE, NUM_MODULES, NUM_BLOCK, VERSION, DATASET_ROOT, LOG_DIR, OUTPUT_DIR):
-    new_var = CN()
-
-    NUM_CHANNELS = int(NUM_CHANNELS)
-    new_var.NUM_CHANNELS = NUM_CHANNELS
-
-    new_var.TYPE = TYPE.upper()
-
-    NO_STAGE = int(NO_STAGE)
-    new_var.NO_STAGE = NO_STAGE
-
-    NUM_MODULES = NUM_MODULES.replace(',', '').replace(' ', '')
-    assert len(NUM_MODULES) == NO_STAGE, \
-        'NUM_MODULES should has the length as NO_STAGE'
-    new_var.NUM_MODULES = [int(x) for x in NUM_MODULES]
-
-    NUM_BLOCK = NUM_BLOCK.replace(',', '').replace(' ', '')
-    assert len(NUM_BLOCK) == NO_STAGE+1, \
-        'NUM_BLOCK should has the length as NO_STAGE+1, the last is DECONV blocks'    
-    new_var.NUM_BLOCK = [int(x) for x in NUM_BLOCK]
-
-    new_var.VERSION = int(VERSION)
-
-    new_var.NAME = 'hhrnet_{}{}{}m{}b{}'.format(NUM_CHANNELS, TYPE.lower(),
-                                                NO_STAGE, NUM_MODULES, NUM_BLOCK)
-    new_var.DATASET_ROOT = DATASET_ROOT
-    new_var.LOG_DIR = LOG_DIR
-    new_var.OUTPUT_DIR = OUTPUT_DIR
-    return new_var
-    
+import os
 
 
-def mod_cfg(cfg, new_var):
+def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
+                DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder):
+
+    assert type(NUM_CHANNELS) == int, 'Input for NUM_CHANNELS should be an integer'
+    assert type(NO_STAGE) == int, 'Input for NO_STAGE should be an integer'
+    assert type(TYPE) == str, 'Input for TYPE should be a string'
+    TYPE = TYPE.upper()
+    assert isinstance(NUM_MODULES, (list, tuple)), 'Input for NUM_MODULES should be a list'
+    assert isinstance(NUM_BLOCKS, (list, tuple)), 'Input for NUM_BLOCKS should be a list'
+    for NUM_MODULE in NUM_MODULES:
+        assert type(NUM_MODULE) == int, 'Input for NUM_MODULES should be integers'
+    for NUM_BLOCK in NUM_BLOCKS:
+        assert type(NUM_BLOCK) == int, 'Input for NUM_BLOCKS should be integers'
+    assert len(NUM_MODULES) == NO_STAGE, 'Length of NUM_MODULES should be {}'.format(NO_STAGE)
+    assert len(NUM_BLOCKS) == NO_STAGE+1, 'Length of NUM_MODULES should be {}'.format(NO_STAGE+1)
+
     new_cfg = copy.deepcopy(cfg)
     extra = new_cfg.MODEL.EXTRA
-    extra.STEM_INPLANES = new_var.NUM_CHANNELS * 2
+    extra.NO_STAGE = NO_STAGE
+    extra.TYPE = TYPE
+    new_cfg.DATASET.ROOT = DATASET_ROOT
+    new_cfg.LOG_DIR =  LOG_DIR
+    new_cfg.OUTPUT_DIR =  OUTPUT_DIR
 
-    for i in range(new_var.NO_STAGE):
-        extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = new_var.NUM_MODULES[i]
-        extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = np.ones((i+1)).astype(int) * new_var.NUM_BLOCK[i]
-        extra['STAGE{}'.format(i+1)]['NUM_CHANNELS'] = 2**np.linspace(0,i,i+1).astype(int) * new_var.NUM_CHANNELS
+    VERSION = 1
+    NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
+    while os.path.exist(yaml_folder + '/' + NAME + '.yaml'):
+        VERSION += 1
+        NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
+    new_cfg.MODEL.NAME = NAME    
 
-    extra.DECONV.NUM_CHANNELS = [new_var.NUM_CHANNELS]
-    extra.DECONV.NUM_BASIC_BLOCKS = new_var.NUM_BLOCK[-1]
+    extra.STEM_INPLANES = NUM_CHANNELS * 2
+    for i in range(NO_STAGE):
+        extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = NUM_MODULES[i]
+        extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = np.ones((i+1)).astype(int) * NUM_BLOCKS[i]
+        extra['STAGE{}'.format(i+1)]['NUM_CHANNELS'] = 2**np.linspace(0,i,i+1).astype(int) * NUM_CHANNELS
+    extra.DECONV.NUM_CHANNELS = [NUM_CHANNELS]
+    extra.DECONV.NUM_BASIC_BLOCKS = NUM_BLOCKS[-1]        
+    
 
-    new_cfg.MODEL.NO_STAGE = new_var.NO_STAGE
-    new_cfg.MODEL.NAME = new_var.NAME
-    new_cfg.MODEL.TYPE = new_var.TYPE
-    new_cfg.MODEL.VERSION = new_var.VERSION
+    with open(default_yaml, 'r') as file:
+        cfg_tree = yaml.load(file)
+    
+    #extra = cfg_tree['MODEL']['EXTRA']
+    cfg_extra = cfg_tree['MODEL']['EXTRA']
+    cfg_tree['MODEL']['NAME'] = NAME
+    cfg_tree['DATASET']['ROOT'] = DATASET_ROOT    
+    cfg_tree['LOG_DIR'] = LOG_DIR
+    cfg_tree['OUTPUT_DIR'] = OUTPUT_DIR
+    cfg_tree['DATA_DIR'] = DATA_DIR
+    
+    cfg_extra['STEM_INPLANES'] = new_var.NUM_CHANNELS * 2    
 
-    new_cfg.DATASET.ROOT = new_var.DATASET_ROOT
-    new_cfg.LOG_DIR =  new_var.LOG_DIR
-    new_cfg.OUTPUT_DIR =  new_var.OUTPUT_DIR
+    for i in range(NO_STAGE):
+        cfg_extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = NUM_MODULES[i]
+        cfg_extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = (np.ones((i+1)).astype(int) * NUM_BLOCK[i]).tolist()
+        cfg_extra['STAGE{}'.format(i+1)]['NUM_CHANNELS'] = (2**np.linspace(0,i,i+1).astype(int) * NUM_CHANNELS).tolist()
+
+    cfg_extra['DECONV']['NUM_BASIC_BLOCKS'] = NUM_BLOCKS[-1]
+    cfg_extra['DECONV']['NUM_CHANNELS'] = [NUM_CHANNELS]
+
+    new_yaml = new_yaml_folder + '/' + NAME + '.yaml'
+
+    with open(new_yaml, 'w') as file:
+        documents = yaml.dump(cfg_tree, file)    
 
     return new_cfg
