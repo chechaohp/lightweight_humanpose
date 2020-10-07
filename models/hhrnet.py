@@ -351,7 +351,7 @@ class HHRNet(nn.Module):
             num_channels = [num_channels[i] * block.expansion for i in range(len(num_channels))]
             
             if i==1:
-                self.layer1 = self._make_layer(block, num_channels[0], num_blocks[0])
+                self.layer1 = self._make_layer(block, self.inplanes, num_blocks[0])
                 pre_stage_channels = [num_channels[-1]]
             else:
                 transition_name = 'transition{}'.format(i-1)
