@@ -352,7 +352,7 @@ class HHRNet(nn.Module):
             
             if i==1:
                 self.layer1 = self._make_layer(block, self.inplanes, num_blocks[0])
-                pre_stage_channels = [num_channels[-1]]
+                pre_stage_channels = [self.inplanes]
             else:
                 transition_name = 'transition{}'.format(i-1)
                 setattr(self, 'transition{}'.format(i-1), 
