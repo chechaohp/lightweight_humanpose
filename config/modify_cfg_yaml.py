@@ -17,7 +17,7 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     for NUM_BLOCK in NUM_BLOCKS:
         assert type(NUM_BLOCK) == int, 'Input for NUM_BLOCKS should be integers'
     assert len(NUM_MODULES) == NO_STAGE, 'Length of NUM_MODULES should be {}'.format(NO_STAGE)
-    assert len(NUM_BLOCKS) == NO_STAGE+1, 'Length of NUM_MODULES should be {}'.format(NO_STAGE+1)
+    assert len(NUM_BLOCKS) == NO_STAGE+1, 'Length of NUM_BLOCKS should be {}'.format(NO_STAGE+1)
 
     new_cfg = copy.deepcopy(cfg)
     extra = new_cfg.MODEL.EXTRA
