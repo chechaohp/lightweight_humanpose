@@ -1,5 +1,4 @@
 from config import cfg, get_student_cfg
-from system_cmd import download_coco_dataset, download_pretrain_model
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch
@@ -26,9 +25,8 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser(description='Run Linear Classifer.')
-    parser.add_argument('--student_file', default=5,help="Student training config")
-    parser.add_argument('--download_data', default=1,help="Dowwnload coco dataset")
-    parser.add_argument('--download_teacher', default=1,help="Dowwnload pretrain model")
+    parser.add_argument('--student_file', required=True,help="Student training config")
+    parser.add_argument('--log', default='log',help="log folder")
     args = parser.parse_args()
     return args
 
@@ -40,10 +38,6 @@ def count_parameters(model):
 def main():
     args = get_args()
     # create teacher
-    if int(args.download_data):
-        download_coco_dataset()
-    if int(args.download_teacher):
-        download_pretrain_model()
     model_path = './pose_higher_hrnet_w32_512_2.pth'
     pre_train_model = PoseHigherResolutionNet(cfg)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -56,27 +50,28 @@ def main():
 
     # student = PoseHigherResolutionNet(new_cfg)
     student_cfg = get_student_cfg(cfg,args)
+    student_cfg.LOG_DIR = args.log
     student = PoseHigherResolutionNet(student_cfg)
     student = torch.nn.DataParallel(student)
 
     # Set up logger
     logger, final_output_dir, tb_log_dir = create_logger(
-            cfg, 'simple_model', 'train'
+            student_cfg, 'simple_model', 'train'
         )
 
-    final_output_dir = cfg.LOG_DIR
+    final_output_dir = student_cfg.LOG_DIR
 
     if torch.cuda.is_available():
         # cudnn related setting
-        cudnn.benchmark = cfg.CUDNN.BENCHMARK
-        torch.backends.cudnn.deterministic = cfg.CUDNN.DETERMINISTIC
-        torch.backends.cudnn.enabled = cfg.CUDNN.ENABLED
+        cudnn.benchmark = student_cfg.CUDNN.BENCHMARK
+        torch.backends.cudnn.deterministic = student_cfg.CUDNN.DETERMINISTIC
+        torch.backends.cudnn.enabled = student_cfg.CUDNN.ENABLED
 
 
-    train_loader = make_dataloader(cfg,True,False)
+    train_loader = make_dataloader(student_cfg,True,False)
     # iteration = 1
 
-    loss_factory = MultiLossFactory(cfg).cuda()
+    loss_factory = MultiLossFactory(student_cfg).cuda()
 
     logger.info(train_loader.dataset)
 
@@ -92,16 +87,16 @@ def main():
 
     optimizer = optim.Adam(
                 student.parameters(),
-                lr=cfg.TRAIN.LR
+                lr=student_cfg.TRAIN.LR
             )
-    begin_epoch = cfg.TRAIN.BEGIN_EPOCH
+    begin_epoch = student_cfg.TRAIN.BEGIN_EPOCH
 
-    end_epoch = cfg.TRAIN.END_EPOCH
+    end_epoch = student_cfg.TRAIN.END_EPOCH
 
     checkpoint_file = os.path.join(
         final_output_dir, 'checkpoint.pth.tar')
 
-    if cfg.AUTO_RESUME and os.path.exists(checkpoint_file):
+    if student_cfg.AUTO_RESUME and os.path.exists(checkpoint_file):
         logger.info("=> loading checkpoint '{}'".format(checkpoint_file))
         checkpoint = torch.load(checkpoint_file)
         begin_epoch = checkpoint['epoch']
@@ -114,7 +109,7 @@ def main():
             checkpoint_file, checkpoint['epoch']))
         
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
-                optimizer, cfg.TRAIN.LR_STEP, cfg.TRAIN.LR_FACTOR,
+                optimizer, student_cfg.TRAIN.LR_STEP, student_cfg.TRAIN.LR_FACTOR,
                 last_epoch=last_epoch
             )
 

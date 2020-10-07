@@ -140,8 +140,13 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                     global_steps
                 )
                 writer.add_scalar(
-                    'train_stage{}_teacher_loss'.format(i),
-                    teacher_loss_meter[idx].val,
+                    'train_stage{}_teacher_heatmap_loss'.format(i),
+                    teacher_heatmap_loss_meter[idx].val,
+                    global_steps
+                )
+                writer.add_scalar(
+                    'train_stage{}_teacher_tagmap_loss'.format(i),
+                    teacher_tagmap_loss_meter[idx].val,
                     global_steps
                 )
             writer_dict['train_global_steps'] = global_steps + 1
