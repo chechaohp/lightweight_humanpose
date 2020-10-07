@@ -29,7 +29,7 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
 
     VERSION = 1
     NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
-    while os.path.exist(yaml_folder + '/' + NAME + '.yaml'):
+    while os.path.exists(yaml_folder + '/' + NAME + '.yaml'):
         VERSION += 1
         NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
     new_cfg.MODEL.NAME = NAME    
