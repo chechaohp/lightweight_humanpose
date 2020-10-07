@@ -1,4 +1,5 @@
 import yaml
+import numpy as np
 
 def create_yaml(default_yaml, new_yaml_folder, new_var):
     with open(default_yaml, 'r') as file:
