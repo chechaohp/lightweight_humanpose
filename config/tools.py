@@ -17,4 +17,4 @@ def get_student_cfg(cfg,args):
     for key, value in student_file_cfg.items():
         student_cfg[key] = value
     
-    return student_file_cfg
+    return student_cfg
