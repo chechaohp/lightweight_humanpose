@@ -3,6 +3,7 @@ import copy
 import os
 import yaml
 
+
 def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
                 DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder):
 
@@ -46,7 +47,6 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     with open(default_yaml, 'r') as file:
         cfg_tree = yaml.load(file)
     
-    #extra = cfg_tree['MODEL']['EXTRA']
     cfg_extra = cfg_tree['MODEL']['EXTRA']
     cfg_tree['MODEL']['NAME'] = NAME
     cfg_tree['DATASET']['ROOT'] = DATASET_ROOT    
