@@ -58,13 +58,13 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
 
     for i in range(NO_STAGE):
         cfg_extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = NUM_MODULES[i]
-        cfg_extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = (np.ones((i+1)).astype(int) * NUM_BLOCK[i]).tolist()
+        cfg_extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = (np.ones((i+1)).astype(int) * NUM_BLOCKS[i]).tolist()
         cfg_extra['STAGE{}'.format(i+1)]['NUM_CHANNELS'] = (2**np.linspace(0,i,i+1).astype(int) * NUM_CHANNELS).tolist()
 
     cfg_extra['DECONV']['NUM_BASIC_BLOCKS'] = NUM_BLOCKS[-1]
     cfg_extra['DECONV']['NUM_CHANNELS'] = [NUM_CHANNELS]
 
-    new_yaml = new_yaml_folder + '/' + NAME + '.yaml'
+    new_yaml = yaml_folder + '/' + NAME + '.yaml'
 
     with open(new_yaml, 'w') as file:
         documents = yaml.dump(cfg_tree, file)    
