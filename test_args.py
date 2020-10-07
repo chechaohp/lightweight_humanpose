@@ -3,6 +3,7 @@ import os
 from config import cfg
 import copy
 import yaml
+from yacs import config
 
 def get_args():
     parser = argparse.ArgumentParser(description='Run Linear Classifer.')
@@ -13,8 +14,8 @@ def get_args():
 
 def get_student_cfg(cfg,args):
     if os.path.exists(args.student_file):
-        with open(args.student_file) as file:
-            student_file_cfg = yaml.load(file, Loader=yaml.FullLoader)
+       with open('experiments/test_student.yaml') as file:
+            student_file_cfg = config.yaml.load(file,Loader=yaml.FullLoader)
     else:
         print("File {} not exists".format(args.student_file))
         print("Please input a specific student config file")

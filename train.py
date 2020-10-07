@@ -118,6 +118,7 @@ def main():
                 last_epoch=last_epoch
             )
 
+    pre_train_model.to(dev)
     student.to(dev)
     for epoch in range(begin_epoch, end_epoch):
         start = time.time()
