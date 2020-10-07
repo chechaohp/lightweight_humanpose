@@ -49,7 +49,7 @@ def main():
         param.requires_grad = False
 
     # student = PoseHigherResolutionNet(new_cfg)
-    student_cfg = get_student_cfg(cfg,args)
+    student_cfg = get_student_cfg(cfg,args.student_file)
     student_cfg.LOG_DIR = args.log
     student = PoseHigherResolutionNet(student_cfg)
     student = torch.nn.DataParallel(student)

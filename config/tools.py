@@ -3,9 +3,9 @@ import yaml
 import copy
 from yacs import config
 
-def get_student_cfg(cfg,args):
-    if os.path.exists(args.student_file):
-       with open(args.student_file) as file:
+def get_student_cfg(cfg,path):
+    if os.path.exists(path):
+       with open(path) as file:
             student_file_cfg = config.load_cfg(file)
     else:
         print("File {} not exists".format(args.student_file))
