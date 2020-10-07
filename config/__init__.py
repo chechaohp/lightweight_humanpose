@@ -6,5 +6,7 @@
 
 from .default import cfg
 from .tools import get_student_cfg
+from .modify_cfg_yaml import create_var, mod_cfg
+
 # from .default import update_config
 # from .default import check_config
