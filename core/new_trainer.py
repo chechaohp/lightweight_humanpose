@@ -26,7 +26,8 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
     heatmaps_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
     push_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
     pull_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
-    teacher_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
+    teacher_heatmap_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
+    teacher_tagmap_loss_meter = [AverageMeter() for _ in range(cfg.LOSS.NUM_STAGES)]
 
     # switch to train mode
     model.train()
@@ -47,7 +48,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
 
         # student loss
         # loss = loss_factory(student_outputs, heatmaps, masks)
-        student_heatmaps_losses, student_push_losses, student_pull_losses, student_teacher_losses = \
+        student_heatmaps_losses, student_push_losses, student_pull_losses, student_teacher_heatmap_losses, student_teacher_tagmap_losses = \
             loss_factory(student_outputs, heatmaps, masks, joints, teacher_outputs)
         # teaccher_loss
         teacher_loss = 0
@@ -74,12 +75,19 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                     )
                     student_loss = student_loss + pull_loss
 
-                if student_teacher_losses[idx] is not None:
-                    student_teacher_loss = student_teacher_losses[idx].mean(dim=0)
-                    teacher_loss_meter[idx].update(
-                        student_teacher_loss.item(), images.size(0)
+                if student_teacher_heatmap_losses[idx] is not None:
+                    student_teacher_heatmap_loss = student_teacher_heatmap_losses[idx].mean(dim=0)
+                    teacher_heatmap_loss_meter[idx].update(
+                        student_teacher_heatmap_loss.item(), images.size(0)
                     )
-                    teacher_loss = teacher_loss + student_teacher_loss
+                    teacher_loss = teacher_loss + student_teacher_heatmap_loss
+                
+                if student_teacher_tagmap_losses[idx] is not None:
+                    student_teacher_tagmap_loss = student_teacher_tagmap_losses[idx].sum(dim=0)
+                    teacher_tagmap_loss_meter[idx].update(
+                        student_teacher_tagmap_loss.item(), images.size(0)
+                    )
+                    teacher_loss = teacher_loss + student_teacher_tagmap_loss
 
 
         alpha = cfg.TRAIN.TEACHER_WEIGHT
@@ -99,7 +107,7 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                   'Time: {batch_time.val:.3f}s ({batch_time.avg:.3f}s)\t' \
                   'Speed: {speed:.1f} samples/s\t' \
                   'Data: {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
-                  '{heatmaps_loss}{push_loss}{pull_loss}{teacher_loss}'.format(
+                  '{heatmaps_loss}{push_loss}{pull_loss}{teacher_heatmap_loss}{teacher_tagmap_loss}'.format(
                       epoch, i, len(data_loader),
                       batch_time=batch_time,
                       speed=images.size(0)/batch_time.val,
@@ -107,7 +115,8 @@ def do_train(cfg, model, data_loader, loss_factory, optimizer, epoch, output_dir
                       heatmaps_loss=_get_loss_info(heatmaps_loss_meter, 'heatmaps'),
                       push_loss=_get_loss_info(push_loss_meter, 'push'),
                       pull_loss=_get_loss_info(pull_loss_meter, 'pull'),
-                      teacher_loss=_get_loss_info(teacher_loss_meter,'teacher')
+                      teacher_heatmap_loss=_get_loss_info(teacher_heatmap_loss_meter,'teacher_heatmap'),
+                      teacher_tagmap_loss=_get_loss_info(teacher_tagmap_loss_meter,'teacher_heatmap')
                   )
             logger.info(msg)
             logger.info("Total losses:" + str(loss))

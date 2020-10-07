@@ -26,7 +26,18 @@ def make_input(t, requires_grad=False, need_cuda=True):
     return inp
 
 
-class TeacherStudentLoss(nn.Module):
+class TeacherStudentTagLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, student_tagmap, teacher_tagmap):
+        assert student_tagmap.size() ==  teacher_tagmap.size()
+        loss = torch.pow(student_tagmap-teacher_tagmap,2)
+        return loss.sum(dim=3).sum(dim=2).sum(dim=1)
+
+
+
+class TeacherStudentHeatMapLoss(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -148,6 +159,8 @@ class LossFactory(nn.Module):
         self.num_joints = cfg.DATASET.NUM_JOINTS
         self.heatmaps_loss = None
         self.ae_loss = None
+        self.student_teacher_loss = None
+        self.student_teacher_tag_loss = None
         self.heatmaps_loss_factor = 1.0
         self.push_loss_factor = 1.0
         self.pull_loss_factor = 1.0
@@ -160,7 +173,11 @@ class LossFactory(nn.Module):
             self.push_loss_factor = cfg.LOSS.PUSH_LOSS_FACTOR
             self.pull_loss_factor = cfg.LOSS.PULL_LOSS_FACTOR
 
-        self.student_teacher_loss = TeacherStudentLoss()
+        if cfg.LOSS.WITH_TAGMAPS_TS_LOSS:
+            self.student_teacher_tag_loss = TeacherStudentTagLoss()
+        
+        if cfg.LOSS.WITH_HEATMAPS_TS_LOSS:
+            self.student_teacher_loss = TeacherStudentHeatMapLoss()
 
         if not self.heatmaps_loss and not self.ae_loss:
             logger.error('At least enable one loss!')
@@ -171,11 +188,13 @@ class LossFactory(nn.Module):
         tags_pred = outputs[:, self.num_joints:]
 
         heatmap_teacher = teacher_outputs[:,:self.num_joints]
+        tags_teacher = teacher_outputs[:, self.num_joints:]
 
         heatmaps_loss = None
         push_loss = None
         pull_loss = None
         student_teacher_loss = None
+        student_teacher_tag_loss = None
 
         if self.heatmaps_loss is not None:
             heatmaps_loss = self.heatmaps_loss(heatmaps_pred, heatmaps, masks)
@@ -192,7 +211,10 @@ class LossFactory(nn.Module):
         if self.student_teacher_loss is not None:
             student_teacher_loss = self.student_teacher_loss(heatmaps_pred,heatmap_teacher)
 
-        return [heatmaps_loss], [push_loss], [pull_loss], [student_teacher_loss]
+        if self.student_teacher_tag_loss is not None:
+            student_teacher_loss = self.student_teacher_loss(tags_pred, tags_teacher)
+
+        return [heatmaps_loss], [push_loss], [pull_loss], [student_teacher_loss], [student_teacher_tag_loss]
 
 
 class MultiLossFactory(nn.Module):
@@ -222,13 +244,22 @@ class MultiLossFactory(nn.Module):
                 ]
             )
 
-        self.student_teacher_loss = \
+        self.student_teacher_heatmap_loss = \
             nn.ModuleList(
                 [
-                    TeacherStudentLoss() if with_heatmaps_loss else None
-                    for with_heatmaps_loss in cfg.LOSS.WITH_HEATMAPS_LOSS
+                    TeacherStudentHeatMapLoss() if with_heatmaps_loss else None
+                    for with_heatmaps_loss in cfg.LOSS.WITH_HEATMAPS_TS_LOSS
                 ]
             )
+
+        self.student_teacher_tag_loss = \
+            nn.ModuleList(
+                [
+                    TeacherStudentTagLoss() if with_tagmaps_loss else None
+                    for with_tagmaps_loss in cfg.LOSS.WITH_TAGMAPS_TS_LOSS
+                ]
+            )
+            
         self.push_loss_factor = cfg.LOSS.PUSH_LOSS_FACTOR
         self.pull_loss_factor = cfg.LOSS.PULL_LOSS_FACTOR
 
@@ -239,7 +270,8 @@ class MultiLossFactory(nn.Module):
         heatmaps_losses = []
         push_losses = []
         pull_losses = []
-        student_teacher_losses = []
+        student_teacher_heatmap_losses = []
+        student_teacher_tagmap_losses = []
 
         for idx in range(len(outputs)):
             offset_feat = 0
@@ -254,16 +286,16 @@ class MultiLossFactory(nn.Module):
                     heatmaps_pred, heatmaps[idx], masks[idx]
                 )
 
-                student_teacher_loss = self.student_teacher_loss[idx](
+                student_teacher_heatmap_loss = self.student_teacher_heatmap_loss[idx](
                     heatmaps_pred, heatmap_teacher, masks[idx]
                 )
 
                 heatmaps_loss = heatmaps_loss * self.heatmaps_loss_factor[idx]
                 heatmaps_losses.append(heatmaps_loss)
-                student_teacher_losses.append(student_teacher_loss)
+                student_teacher_heatmap_losses.append(student_teacher_heatmap_loss)
             else:
                 heatmaps_losses.append(None)
-                student_teacher_losses.append(None)
+                student_teacher_heatmap_losses.append(None)
 
             if self.ae_loss[idx]:
                 tags_pred = outputs[idx][:, offset_feat:]
@@ -282,7 +314,16 @@ class MultiLossFactory(nn.Module):
                 push_losses.append(None)
                 pull_losses.append(None)
 
-        return heatmaps_losses, push_losses, pull_losses, student_teacher_losses
+            if self.student_teacher_tag_loss[idx]:
+                tags_pred = outputs[idx][:, self.num_joints:]
+                teacher_tag_pred = teacher_outputs[idx][:, self.num_joints:]
+                student_teacher_tagmap_loss = self.student_teacher_tag_loss[idx](tags_pred,teacher_tag_pred)
+                student_teacher_tagmap_losses.append(student_teacher_heatmap_loss)
+            else:
+                student_teacher_heatmap_losses.append(None)
+
+
+        return heatmaps_losses, push_losses, pull_losses, student_teacher_heatmap_losses, student_teacher_tagmap_losses
 
     def _init_check(self, cfg):
         assert isinstance(cfg.LOSS.WITH_HEATMAPS_LOSS, (list, tuple)), \

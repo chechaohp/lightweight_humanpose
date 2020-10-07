@@ -26,7 +26,9 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser(description='Run Linear Classifer.')
-    parser.add_argument('--student_file', default=5,help="Number of training epoch")
+    parser.add_argument('--student_file', default=5,help="Student training config")
+    parser.add_argument('--download_data', default=1,help="Dowwnload coco dataset")
+    parser.add_argument('--download_teacher', default=1,help="Dowwnload pretrain model")
     args = parser.parse_args()
     return args
 
@@ -38,8 +40,10 @@ def count_parameters(model):
 def main():
     args = get_args()
     # create teacher
-    download_coco_dataset()
-    download_pretrain_model()
+    if int(args.download_dataset):
+        download_coco_dataset()
+    if int(args.download_teacher):
+        download_pretrain_model()
     model_path = './pose_higher_hrnet_w32_512_2.pth'
     pre_train_model = PoseHigherResolutionNet(cfg)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'

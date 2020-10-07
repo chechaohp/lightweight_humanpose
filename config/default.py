@@ -80,6 +80,8 @@ cfg.LOSS.WITH_AE_LOSS = [True, False]
 cfg.LOSS.AE_LOSS_TYPE = 'exp'
 cfg.LOSS.PUSH_LOSS_FACTOR = [0.001, 0.001]
 cfg.LOSS.PULL_LOSS_FACTOR = [0.001, 0.001]
+cfg.LOSS.WITH_HEATMAPS_TS_LOSS = [True,True]
+cfg.LOSS.WITH_TAGMAPS_TS_LOSS = [False,False]
 
 # DATASET related params
 cfg.DATASET = CN()
