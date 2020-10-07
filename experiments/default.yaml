@@ -34,6 +34,8 @@ LOSS:
   WITH_HEATMAPS_LOSS: [true, true]
 MODEL:
   EXTRA:
+    NO_STAGE: 4
+    TYPE: 'C'
     DECONV:
       CAT_OUTPUT: [true]
       KERNEL_SIZE: [4]
@@ -74,7 +76,7 @@ MODEL:
   INIT_WEIGHTS: true
   NAME: hhrnet
   NUM_JOINTS: 17
-  PRETRAINED: models/pytorch/imagenet/hrnet_w32-36af842e.pth
+  PRETRAINED: ''
   TAG_PER_JOINT: true
 OUTPUT_DIR: /content/drive/My Drive/AI_Colab/HigherHRNet/output
 PRINT_FREQ: 100
