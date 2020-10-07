@@ -40,7 +40,7 @@ def count_parameters(model):
 def main():
     args = get_args()
     # create teacher
-    if int(args.download_dataset):
+    if int(args.download_data):
         download_coco_dataset()
     if int(args.download_teacher):
         download_pretrain_model()
