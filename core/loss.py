@@ -320,9 +320,9 @@ class MultiLossFactory(nn.Module):
                 student_teacher_tagmap_loss = self.student_teacher_tag_loss[idx](tags_pred,teacher_tag_pred)
                 student_teacher_tagmap_losses.append(student_teacher_heatmap_loss)
             else:
-                student_teacher_heatmap_losses.append(None)
+                student_teacher_tagmap_losses.append(None)
 
-
+        # print(len(student_teacher_heatmap_losses))
         return heatmaps_losses, push_losses, pull_losses, student_teacher_heatmap_losses, student_teacher_tagmap_losses
 
     def _init_check(self, cfg):
