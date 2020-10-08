@@ -50,7 +50,9 @@ The more exchange units, the higher the accuracy, but with the cost of more calc
 > Type B will basically has only 1 HR Module in each branch in each stage.
 
 Also change the path:
+
 `DATASET_ROOT`, `DATA_DIR`, `default_yaml` can be ignored with default installation
+
 Change `LOG_DIR`, `OUTPUT_DIR`, `yaml_folder` to change where you want to save your results.
 ```javascript
 DATASET_ROOT = '/content/coco'
