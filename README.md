@@ -81,3 +81,4 @@ def count_params(model):
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"{count_params(student):,d}", "train parameters")
 ```
+For reference, the initial Higher HRNet has 28,645,331 trainable parameters.
