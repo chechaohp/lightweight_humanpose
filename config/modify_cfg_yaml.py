@@ -13,8 +13,10 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     assert type(TYPE) == str, 'Input for TYPE should be a string'
     TYPE = TYPE.upper()
     if TYPE == 'B':
-        NUM_MODULES = [int(x) for x in np.ones(NO_STAGE).tolist()]
-        print('For Type B, each later stages has 1 HR Modules')
+        if NUM_MODULES != [int(x) for x in np.ones(NO_STAGE).tolist()]:
+            NUM_MODULES = [int(x) for x in np.ones(NO_STAGE).tolist()]
+            print('For Type B, each later stages has 1 HR Modules')
+            print('NUM_MODULES are set to {}'.format(NUM_MODULES))
     assert isinstance(NUM_MODULES, (list, tuple)), 'Input for NUM_MODULES should be a list'
     assert isinstance(NUM_BLOCKS, (list, tuple)), 'Input for NUM_BLOCKS should be a list'
     for NUM_MODULE in NUM_MODULES:
