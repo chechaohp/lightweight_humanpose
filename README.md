@@ -2,26 +2,26 @@
 
 
 
-## **Setting up**
-### Clone the repository
+## **1. Setting up**
+### 1.1. Clone the repository
 ```javascript
 !git clone https://github.com/chechaohp/test_repo.git
 !cp -r test_repo/* ./
 !rm -rf test_repo
 ```
-### Install requirement package
+### 1.2. Install requirement package
 ```javascript
 !pip install -r requirements.txt
 ```
 
 
-## **Creating and Saving Student Configuration**
-### Load the default configuration and function to change it
+## **2. Creating and Saving Student Configuration**
+### 2.1. Load the default configuration and function to change it
 ```javascript
 from config import cfg, mod_cfg_yaml
 ```
     
-### Choosing new parameters for the student model
+### 2.2. Choosing new parameters for the student model
 (The default parameters of the teacher model)
 ```javascript
 NUM_CHANNELS = 32
@@ -60,18 +60,18 @@ student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_B
                            DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder)
 ```
     
-## **Creating Student Model**
-### Load model structure
+## **3. Creating Student Model**
+### 3.1. Load model structure
 ```javascript
 from models import HHRNet
 import torch
 ```
-### Create model
+### 3.2. Create model
 ```javascript
 student = HHRNet(student_cfg)
 student = torch.nn.DataParallel(student)
 ```
-### Check model parameters
+### 3.3. Check model parameters
 ```javascript
 def count_params(model):
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
