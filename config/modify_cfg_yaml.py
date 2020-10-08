@@ -12,6 +12,9 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     assert type(NO_STAGE) == int, 'Input for NO_STAGE should be an integer'
     assert type(TYPE) == str, 'Input for TYPE should be a string'
     TYPE = TYPE.upper()
+    if TYPE == 'B':
+        NUM_MODULES = [int(x) for x in np.ones(NO_STAGE).tolist()]
+        print('For Type B, each later stages has 1 HR Modules')
     assert isinstance(NUM_MODULES, (list, tuple)), 'Input for NUM_MODULES should be a list'
     assert isinstance(NUM_BLOCKS, (list, tuple)), 'Input for NUM_BLOCKS should be a list'
     for NUM_MODULE in NUM_MODULES:
@@ -35,7 +38,7 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
         NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
     new_cfg.MODEL.NAME = NAME    
 
-    extra.STEM_INPLANES = NUM_CHANNELS * 2
+    extra.STEM_INPLANES = NUM_CHANNELS * 2    
     for i in range(NO_STAGE):
         extra['STAGE{}'.format(i+1)]['NUM_MODULES'] = NUM_MODULES[i]
         extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = np.ones((i+1)).astype(int) * NUM_BLOCKS[i]
