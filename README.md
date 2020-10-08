@@ -57,9 +57,9 @@ YAML_DIR = '/content/experiments'
 ##### 4. Training mode
 Change the components of the student's loss function.
 ```javascript
-WITH_HEATMAPS_TS_LOSS: [True, True]
-WITH_TAGMAPS_TS_LOSS: [True, False]
-DISTILLATION_WEIGHT: 0.9
+WITH_HEATMAPS_TS_LOSS = [True, True]
+WITH_TAGMAPS_TS_LOSS = [True, False]
+TEACHER_WEIGHT = 0.9
 ```
 ##### 5. Create and save
 Then, to create new cfg and save it to `.yaml` file
