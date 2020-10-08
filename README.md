@@ -64,8 +64,10 @@ yaml_folder = '/content/experiments'
 ```
 Then, to create new cfg and save it to `.yaml` file
 ```javascript
-student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
-                           DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder)
+student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, 
+                           NUM_MODULES, NUM_BLOCKS,
+                           DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, 
+                           default_yaml, yaml_folder)
 ```    
 ## **3. Creating Student Model**
 ##### 3.1. Load model structure
