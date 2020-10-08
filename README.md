@@ -70,12 +70,12 @@ student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE,
                            DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, 
                            default_yaml, yaml_folder)
 ```
-You can also load existing saved configuration:
+You can also load your previously-saved configuration from yaml file:
 ```javascript
 from yacs import config
 
 with open(path_of_saved_yaml) as file:
-    model = config.load_cfg(file)
+    old_cfg = config.load_cfg(file)
 ```
 ## **3. Creating Student Model**
 ##### 3.1. Load model structure
