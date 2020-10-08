@@ -30,7 +30,7 @@ if TYPE == 'B':
     print('For Type B, each later stages has 1 HR Modules')
 NUM_BLOCKS = [4, 4, 4, 4, 4]
 ```
-(Above are also the default parameters our teacher model)
+(Above are also the default parameters of our teacher model)
 ##### Note:
 > `NUM_MODULES` are the number of HR modules in each branch in each stage.
 
