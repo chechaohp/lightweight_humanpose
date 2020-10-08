@@ -2,24 +2,24 @@
 
 
 
-## **1. Setting up**
-##### 1.1. Clone the repository
+## 1. Setting up
+##### 1. Clone the repository
 ```javascript
 !git clone https://github.com/chechaohp/test_repo.git
 !cp -r test_repo/* ./
 !rm -rf test_repo
 ```
-##### 1.2. Install required packages
+##### 2. Install required packages
 ```javascript
 !pip install -r requirements.txt
 ```
-## **2. Creating and Saving Student Configuration**
-##### 2.1. Load the default configuration and function to change it
+## 2. Creating and Saving Student Configuration
+##### 1. Load the default configuration and function to change it
 ```javascript
 from config import cfg, mod_cfg_yaml, get_student_cfg
 import numpy as np
 ```
-##### 2.2. Choosing new parameters for the student model
+##### 2. Choosing new parameters for the student model
 ```javascript
 NUM_CHANNELS = 32
 NO_STAGE = 4
@@ -50,8 +50,7 @@ The more exchange units, the higher the accuracy, but with the cost of more calc
 
 > Type B will basically has only 1 HR Module in each branch in each stage.
 
-Also change the path:
-
+##### 3. Change the path
 `DATASET_ROOT`, `DATA_DIR`, `default_yaml` can be ignored with default installation
 
 Change `LOG_DIR`, `OUTPUT_DIR`, `yaml_folder` to change where you want to save your results.
@@ -63,32 +62,42 @@ DATA_DIR = ''
 default_yaml = '/content/experiments/default.yaml'
 yaml_folder = '/content/experiments'
 ```
+##### 4. Training mode
+Change the components of the student's loss function.
+```javascript
+WITH_HEATMAPS_TS_LOSS: [True, True]
+WITH_TAGMAPS_TS_LOSS: [True, False]
+DISTILLATION_WEIGHT: 0.9
+```
+##### 5. Create and save
 Then, to create new cfg and save it to `.yaml` file
 ```javascript
 student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, 
                            NUM_MODULES, NUM_BLOCKS,
                            DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, 
-                           default_yaml, yaml_folder)
+                           default_yaml, yaml_folder,
+                           WITH_HEATMAPS_TS_LOSS, WITH_TAGMAPS_TS_LOSS, DISTILLATION_WEIGHT)
 ```
-You can also load your previously-saved configuration from yaml file:
+You can also load your previously-saved configuration from `.yaml` file:
 ```javascript
 from yacs import config
 
 with open(path_of_saved_yaml) as file:
     old_cfg = config.load_cfg(file)
 ```
-## **3. Creating Student Model**
-##### 3.1. Load model structure
+
+## 3. Creating Student Model
+##### 1. Load model structure
 ```javascript
 from models import HHRNet
 import torch
 ```
-##### 3.2. Create model
+##### 2. Create model
 ```javascript
 student = HHRNet(student_cfg)
 student = torch.nn.DataParallel(student)
 ```
-##### 3.3. Count model parameters
+##### 3. Count model parameters
 ```javascript
 def count_params(model):
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
