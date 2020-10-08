@@ -51,15 +51,10 @@ The more exchange units, the higher the accuracy, but with the cost of more calc
 > Type B will basically has only 1 HR Module in each branch in each stage.
 
 ##### 3. Change the path
-`DATASET_ROOT`, `DATA_DIR`, `default_yaml` can be ignored with default installation
-
 Change `LOG_DIR`, `OUTPUT_DIR`, `yaml_folder` to change where you want to save your results.
 ```javascript
-DATASET_ROOT = '/content/coco'
 LOG_DIR =  '/content/drive/My Drive/AI_Colab/HigherHRNet/log'
 OUTPUT_DIR = '/content/drive/My Drive/AI_Colab/HigherHRNet/output'
-DATA_DIR = ''
-default_yaml = '/content/experiments/default.yaml'
 yaml_folder = '/content/experiments'
 ```
 ##### 4. Training mode
@@ -73,7 +68,7 @@ DISTILLATION_WEIGHT: 0.9
 Then, to create new cfg and save it to `.yaml` file
 ```javascript
 student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
-                           DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder,
+                           LOG_DIR, OUTPUT_DIR, yaml_folder,
                            WITH_HEATMAPS_TS_LOSS, WITH_TAGMAPS_TS_LOSS, DISTILLATION_WEIGHT)
 ```
 You can also load your previously-saved configuration from `.yaml` file:
