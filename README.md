@@ -25,9 +25,6 @@ NUM_CHANNELS = 32
 NO_STAGE = 4
 TYPE = 'C'
 NUM_MODULES = [4, 1, 4, 3]
-if TYPE == 'B':
-    NUM_MODULES = [int(x) for x in np.ones(NO_STAGE).tolist()]
-    print('For Type B, each later stages has 1 HR Modules')
 NUM_BLOCKS = [4, 4, 4, 4, 4]
 ```
 (Above are also the default parameters of our teacher model)
