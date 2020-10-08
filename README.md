@@ -75,7 +75,7 @@ import torch
 student = HHRNet(student_cfg)
 student = torch.nn.DataParallel(student)
 ```
-### 3.3. Check model parameters
+### 3.3. Count model parameters
 ```javascript
 def count_params(model):
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
