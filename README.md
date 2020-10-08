@@ -9,7 +9,7 @@
 !cp -r test_repo/* ./
 !rm -rf test_repo
 ```
-##### 1.2. Install requirement package
+##### 1.2. Install required packages
 ```javascript
 !pip install -r requirements.txt
 ```
