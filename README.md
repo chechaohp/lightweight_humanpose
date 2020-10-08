@@ -13,14 +13,11 @@
 ```javascript
 !pip install -r requirements.txt
 ```
-
-
 ## **2. Creating and Saving Student Configuration**
 ##### 2.1. Load the default configuration and function to change it
 ```javascript
 from config import cfg, mod_cfg_yaml
-```
-    
+```    
 ##### 2.2. Choosing new parameters for the student model
 ```javascript
 NUM_CHANNELS = 32
@@ -33,7 +30,6 @@ if TYPE == 'B':
 NUM_BLOCKS = [4, 4, 4, 4, 4]
 ```
 (Above are also the default parameters our teacher model)
-
 ##### Note:
 There are 3 method of choosing exchange units in HRNet: A, B, C
 > Type A has only final exchange unit
@@ -58,13 +54,11 @@ DATA_DIR = ''
 default_yaml = '/content/experiments/default.yaml'
 yaml_folder = '/content/experiments'
 ```
-
 Then, to create new cfg and save it to `.yaml` file
 ```javascript
 student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
                            DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder)
-```
-    
+```    
 ## **3. Creating Student Model**
 ##### 3.1. Load model structure
 ```javascript
