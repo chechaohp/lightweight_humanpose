@@ -1,7 +1,7 @@
 # test_repo
 
 
-**1. *Setting up:**
+**1. Setting up:**
   - Clone the repository
     ```javascript
     !git clone https://github.com/chechaohp/test_repo.git
