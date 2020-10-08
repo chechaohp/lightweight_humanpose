@@ -16,8 +16,9 @@
 ## **2. Creating and Saving Student Configuration**
 ##### 2.1. Load the default configuration and function to change it
 ```javascript
-from config import cfg, mod_cfg_yaml
-```    
+from config import cfg, mod_cfg_yaml, get_student_cfg
+import numpy as np
+```
 ##### 2.2. Choosing new parameters for the student model
 ```javascript
 NUM_CHANNELS = 32
@@ -68,7 +69,14 @@ student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE,
                            NUM_MODULES, NUM_BLOCKS,
                            DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, 
                            default_yaml, yaml_folder)
-```    
+```
+You can also load existing saved configuration:
+```javascript
+from yacs import config
+
+with open(path_of_saved_yaml) as file:
+    model = config.load_cfg(file)
+```
 ## **3. Creating Student Model**
 ##### 3.1. Load model structure
 ```javascript
