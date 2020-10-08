@@ -72,10 +72,8 @@ DISTILLATION_WEIGHT: 0.9
 ##### 5. Create and save
 Then, to create new cfg and save it to `.yaml` file
 ```javascript
-student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, 
-                           NUM_MODULES, NUM_BLOCKS,
-                           DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, 
-                           default_yaml, yaml_folder,
+student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
+                           DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder,
                            WITH_HEATMAPS_TS_LOSS, WITH_TAGMAPS_TS_LOSS, DISTILLATION_WEIGHT)
 ```
 You can also load your previously-saved configuration from `.yaml` file:
