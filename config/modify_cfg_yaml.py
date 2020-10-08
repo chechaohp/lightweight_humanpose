@@ -5,7 +5,8 @@ import yaml
 
 
 def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
-                DATASET_ROOT, LOG_DIR, OUTPUT_DIR, DATA_DIR, default_yaml, yaml_folder):
+                LOG_DIR, OUTPUT_DIR, YAML_DIR,
+                WITH_HEATMAPS_TS_LOSS, WITH_TAGMAPS_TS_LOSS, TEACHER_WEIGHT):
 
     assert type(NUM_CHANNELS) == int, 'Input for NUM_CHANNELS should be an integer'
     assert type(NO_STAGE) == int, 'Input for NO_STAGE should be an integer'
@@ -24,13 +25,12 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     extra = new_cfg.MODEL.EXTRA
     extra.NO_STAGE = NO_STAGE
     extra.TYPE = TYPE
-    new_cfg.DATASET.ROOT = DATASET_ROOT
     new_cfg.LOG_DIR =  LOG_DIR
     new_cfg.OUTPUT_DIR =  OUTPUT_DIR
 
     VERSION = 1
     NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
-    while os.path.exists(yaml_folder + '/' + NAME + '.yaml'):
+    while os.path.exists(YAML_DIR + '/' + NAME + '.yaml'):
         VERSION += 1
         NAME = 'hhrnet_{}{}{}_ver{}'.format(NUM_CHANNELS, TYPE, NO_STAGE, VERSION)
     new_cfg.MODEL.NAME = NAME    
@@ -41,18 +41,24 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
         extra['STAGE{}'.format(i+1)]['NUM_BLOCKS'] = np.ones((i+1)).astype(int) * NUM_BLOCKS[i]
         extra['STAGE{}'.format(i+1)]['NUM_CHANNELS'] = 2**np.linspace(0,i,i+1).astype(int) * NUM_CHANNELS
     extra.DECONV.NUM_CHANNELS = [NUM_CHANNELS]
-    extra.DECONV.NUM_BASIC_BLOCKS = NUM_BLOCKS[-1]        
+    extra.DECONV.NUM_BASIC_BLOCKS = NUM_BLOCKS[-1]
     
-
+    new_cfg.LOSS.WITH_HEATMAPS_TS_LOSS = WITH_HEATMAPS_TS_LOSS
+    new_cfg.LOSS.WITH_TAGMAPS_TS_LOSS = WITH_TAGMAPS_TS_LOSS
+    new_cfg.TRAIN.TEACHER_WEIGHT = TEACHER_WEIGHT   
+    
+    default_yaml = '/content/experiments/default.yaml'
     with open(default_yaml, 'r') as file:
         cfg_tree = yaml.load(file)
     
     cfg_extra = cfg_tree['MODEL']['EXTRA']
     cfg_tree['MODEL']['NAME'] = NAME
-    cfg_tree['DATASET']['ROOT'] = DATASET_ROOT    
     cfg_tree['LOG_DIR'] = LOG_DIR
     cfg_tree['OUTPUT_DIR'] = OUTPUT_DIR
-    cfg_tree['DATA_DIR'] = DATA_DIR
+    cfg_tree['LOSS']['WITH_HEATMAPS_TS_LOSS '] = WITH_HEATMAPS_TS_LOSS
+    cfg_tree['LOSS']['WITH_TAGMAPS_TS_LOSS  '] = WITH_TAGMAPS_TS_LOSS
+    cfg_tree['TRAIN']['TEACHER_WEIGHT'] = TEACHER_WEIGHT
+    
     
     cfg_extra['STEM_INPLANES'] = NUM_CHANNELS * 2    
 
@@ -64,7 +70,7 @@ def mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_BLOCKS,
     cfg_extra['DECONV']['NUM_BASIC_BLOCKS'] = NUM_BLOCKS[-1]
     cfg_extra['DECONV']['NUM_CHANNELS'] = [NUM_CHANNELS]
 
-    new_yaml = yaml_folder + '/' + NAME + '.yaml'
+    new_yaml = YAML_DIR + '/' + NAME + '.yaml'
 
     with open(new_yaml, 'w') as file:
         documents = yaml.dump(cfg_tree, file)    
