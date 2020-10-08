@@ -3,26 +3,25 @@
 
 
 ## **1. Setting up**
-### 1.1. Clone the repository
+##### 1.1. Clone the repository
 ```javascript
 !git clone https://github.com/chechaohp/test_repo.git
 !cp -r test_repo/* ./
 !rm -rf test_repo
 ```
-### 1.2. Install requirement package
+##### 1.2. Install requirement package
 ```javascript
 !pip install -r requirements.txt
 ```
 
 
 ## **2. Creating and Saving Student Configuration**
-### 2.1. Load the default configuration and function to change it
+##### 2.1. Load the default configuration and function to change it
 ```javascript
 from config import cfg, mod_cfg_yaml
 ```
     
-### 2.2. Choosing new parameters for the student model
-(The default parameters of the teacher model)
+##### 2.2. Choosing new parameters for the student model
 ```javascript
 NUM_CHANNELS = 32
 NO_STAGE = 4
@@ -33,7 +32,9 @@ if TYPE == 'B':
     print('For Type B, each later stages has 1 HR Modules')
 NUM_BLOCKS = [4, 4, 4, 4, 4]
 ```
-#### Note:
+(Above are also the default parameters our teacher model)
+
+##### Note:
 There are 3 method of choosing exchange units in HRNet: A, B, C
 > Type A has only final exchange unit
 
@@ -65,17 +66,17 @@ student_cfg = mod_cfg_yaml(cfg, NUM_CHANNELS, TYPE, NO_STAGE, NUM_MODULES, NUM_B
 ```
     
 ## **3. Creating Student Model**
-### 3.1. Load model structure
+##### 3.1. Load model structure
 ```javascript
 from models import HHRNet
 import torch
 ```
-### 3.2. Create model
+##### 3.2. Create model
 ```javascript
 student = HHRNet(student_cfg)
 student = torch.nn.DataParallel(student)
 ```
-### 3.3. Count model parameters
+##### 3.3. Count model parameters
 ```javascript
 def count_params(model):
   return sum(p.numel() for p in model.parameters() if p.requires_grad)
