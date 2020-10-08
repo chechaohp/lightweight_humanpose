@@ -33,21 +33,18 @@ if TYPE == 'B':
     print('For Type B, each later stages has 1 HR Modules')
 NUM_BLOCKS = [4, 4, 4, 4, 4]
 ```
-Note:
-> There are 3 method of choosing exchange units in HRNet: A, B, C
-
+#### Note:
+There are 3 method of choosing exchange units in HRNet: A, B, C
 > Type A has only final exchange unit
 
 > Type B has final and between-stage exchange units
 
 > Type C has final, between-stage and within-stage exchange units
 
-> The more exchange units, the higher the accuracy, but with the cost of more calculation and parameters
-
+The more exchange units, the higher the accuracy, but with the cost of more calculation and parameters
 > The code is only compatible for type B and C.
 
 > Type B will basically has only 1 HR Module in each branch in each stage.
-
 
 Also change the path:
 `DATASET_ROOT`, `DATA_DIR`, `default_yaml` can be ignored with default installation
