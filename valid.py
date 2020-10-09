@@ -65,7 +65,7 @@ def main():
     args = get_args()
     # get student config
     student_cfg = get_student_cfg(cfg,args.student_file)
-
+    student_cfg.LOG_DIR = args.log
     logger, final_output_dir, tb_log_dir = create_logger(
         student_cfg, args.student_file, 'valid'
     )

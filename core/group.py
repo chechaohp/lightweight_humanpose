@@ -162,7 +162,7 @@ class HeatmapParser(object):
         )
 
         x = ind % w
-        y = (ind / w).long()
+        y = torch.true_divide(ind, w).long()
 
         ind_k = torch.stack((x, y), dim=3)
 
