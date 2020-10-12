@@ -44,56 +44,44 @@ LOSS:
 MODEL:
   EXTRA:
     FINAL_CONV_KERNEL: 1
+    NO_STAGE: 4
+    TYPE: 'C'
     PRETRAINED_LAYERS: ['*']
     STEM_INPLANES: 64
+    STAGE1:
+      NUM_BRANCHES: 1
+      NUM_MODULES: 4
+      NUM_CHANNELS: [32]      
+      NUM_BLOCKS: [4]            
+      BLOCK: BOTTLENECK
+      FUSE_METHOD: SUM
     STAGE2:
       NUM_MODULES: 1
       NUM_BRANCHES: 2
       BLOCK: BASIC
-      NUM_BLOCKS:
-      - 4
-      - 4
-      NUM_CHANNELS:
-      - 32
-      - 64
+      NUM_BLOCKS: [4, 4]
+      NUM_CHANNELS: [32, 64]
       FUSE_METHOD: SUM
     STAGE3:
       NUM_MODULES: 4
       NUM_BRANCHES: 3
       BLOCK: BASIC
-      NUM_BLOCKS:
-      - 4
-      - 4
-      - 4
-      NUM_CHANNELS:
-      - 32
-      - 64
-      - 128
+      NUM_BLOCKS: [4, 4, 4]
+      NUM_CHANNELS: [32, 64, 128]
       FUSE_METHOD: SUM
     STAGE4:
       NUM_MODULES: 3
       NUM_BRANCHES: 4
       BLOCK: BASIC
-      NUM_BLOCKS:
-      - 4
-      - 4
-      - 4
-      - 4
-      NUM_CHANNELS:
-      - 32
-      - 64
-      - 128
-      - 256
+      NUM_BLOCKS: [4, 4, 4, 4]
+      NUM_CHANNELS: [32, 64, 128, 256]
       FUSE_METHOD: SUM
     DECONV:
       NUM_DECONVS: 1
-      NUM_CHANNELS:
-      - 32
-      KERNEL_SIZE:
-      - 4
+      NUM_CHANNELS: [32]
+      KERNEL_SIZE: [4]
       NUM_BASIC_BLOCKS: 4
-      CAT_OUTPUT:
-      - True
+      CAT_OUTPUT: [true]
   INIT_WEIGHTS: True
   NAME: pose_higher_hrnet
   NUM_JOINTS: 17
