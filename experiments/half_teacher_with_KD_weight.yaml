@@ -95,3 +95,4 @@ TRAIN:
   RESUME: false
   SHUFFLE: true
   WD: 0.0001
+  TEACHER_WEIGHT: 0.5
