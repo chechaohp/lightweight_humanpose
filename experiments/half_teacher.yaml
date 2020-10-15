@@ -68,3 +68,20 @@ MODEL:
   NUM_JOINTS: 17
   PRETRAINED: 'models/pytorch/imagenet/hrnet_w32-36af842e.pth'
   TAG_PER_JOINT: True
+TRAIN:
+  BEGIN_EPOCH: 0
+  CHECKPOINT: ''
+  END_EPOCH: 100
+  GAMMA1: 0.99
+  GAMMA2: 0.0
+  IMAGES_PER_GPU: 16
+  LR: 0.001
+  LR_FACTOR: 0.1
+  LR_STEP: [100, 130]
+  MOMENTUM: 0.9
+  NESTEROV: false
+  OPTIMIZER: adam
+  RESUME: false
+  SHUFFLE: true
+  WD: 0.0001
+  TEACHER_WEIGHT: 0.9
