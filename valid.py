@@ -148,10 +148,10 @@ def main():
                 [final_heatmaps.size(3), final_heatmaps.size(2)]
             )
 
-        if cfg.TEST.LOG_PROGRESS:
+        if student_cfg.TEST.LOG_PROGRESS:
             pbar.update()
 
-        if i % cfg.PRINT_FREQ == 0:
+        if i % student_cfg.PRINT_FREQ == 0:
             prefix = '{}_{}'.format(os.path.join(final_output_dir, 'result_valid'), i)
             # logger.info('=> write {}'.format(prefix))
             save_valid_image(image, final_results, '{}.jpg'.format(prefix), dataset=test_dataset.name)
@@ -160,7 +160,7 @@ def main():
         all_preds.append(final_results)
         all_scores.append(scores)
 
-    if cfg.TEST.LOG_PROGRESS:
+    if student_cfg.TEST.LOG_PROGRESS:
         pbar.close()
 
     name_values, _ = test_dataset.evaluate(
