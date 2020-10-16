@@ -1,18 +1,3 @@
-# test_repo
-
-
-
-## 1. Setting up
-##### 1. Clone the repository
-```python
-!git clone https://github.com/chechaohp/test_repo.git
-!cp -r test_repo/* ./
-!rm -rf test_repo
-```
-##### 2. Install required packages
-```python
-!pip install -r requirements.txt
-```
 ## 2. Creating and Saving Student Configuration
 ##### 1. Load the default configuration and function to change it
 ```python
