@@ -117,7 +117,7 @@ def main():
     student.to(dev)
     for epoch in range(begin_epoch, end_epoch):
         start = time.time()
-        do_train(cfg,student,train_loader,loss_factory,optimizer,epoch,final_output_dir,writer_dict, pre_train_model,dev)
+        do_train(student_cfg,student,train_loader,loss_factory,optimizer,epoch,final_output_dir,writer_dict, pre_train_model,dev)
         print('epoch',epoch,':',round((time.time() - start)/60,2),'minutes')
         # In PyTorch 1.1.0 and later, you should call `lr_scheduler.step()` after `optimizer.step()`.
         lr_scheduler.step()
@@ -132,7 +132,7 @@ def main():
         logger.info('=> saving checkpoint to {}'.format(final_output_dir))
         save_checkpoint({
             'epoch': epoch + 1,
-            'model': cfg.MODEL.NAME,
+            'model': student_cfg.MODEL.NAME,
             'state_dict': student.state_dict(),
             'best_state_dict': student.module.state_dict(),
             'perf': perf_indicator,
