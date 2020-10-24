@@ -1,0 +1,70 @@
+AUTO_RESUME: True
+PRINT_FREQ: 1000
+LOSS:
+  NUM_STAGES: 2
+  AE_LOSS_TYPE: exp
+  WITH_AE_LOSS: [True, False]
+  PUSH_LOSS_FACTOR: [0.001, 0.001]
+  PULL_LOSS_FACTOR: [0.001, 0.001]
+  WITH_HEATMAPS_LOSS: [True, True]
+  HEATMAPS_LOSS_FACTOR: [1.0, 1.0]
+  WITH_HEATMAPS_TS_LOSS: [True, True]
+  WITH_TAGMAPS_TS_LOSS: [True, False]
+MODEL:
+  EXTRA:
+    FINAL_CONV_KERNEL: 1
+    PRETRAINED_LAYERS: ['*']
+    STEM_INPLANES: 64
+    STAGE2:
+      NUM_MODULES: 1
+      NUM_BRANCHES: 2
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 2
+      - 2
+      NUM_CHANNELS:
+      - 16
+      - 32
+      FUSE_METHOD: SUM
+    STAGE3:
+      NUM_MODULES: 2
+      NUM_BRANCHES: 3
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 2
+      - 2
+      - 2
+      NUM_CHANNELS:
+      - 16
+      - 32
+      - 64
+      FUSE_METHOD: SUM
+    STAGE4:
+      NUM_MODULES: 2
+      NUM_BRANCHES: 4
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 2
+      - 2
+      - 2
+      - 2
+      NUM_CHANNELS:
+      - 16
+      - 32
+      - 64
+      - 128
+      FUSE_METHOD: SUM
+    DECONV:
+      NUM_DECONVS: 1
+      NUM_CHANNELS:
+      - 16
+      KERNEL_SIZE:
+      - 4
+      NUM_BASIC_BLOCKS: 2
+      CAT_OUTPUT:
+      - True
+  INIT_WEIGHTS: True
+  NAME: half_teacher_100epoch
+  NUM_JOINTS: 17
+  PRETRAINED: 'models/pytorch/imagenet/hrnet_w32-36af842e.pth'
+  TAG_PER_JOINT: True
