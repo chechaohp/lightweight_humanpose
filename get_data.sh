@@ -16,6 +16,4 @@ unzip -qq stuff_annotations_trainval2017.zip
 rm annotations_trainval2017.zip
 rm stuff_annotations_trainval2017.zip
 cd ..
-clear
 wget https://github.com/chechaohp/test_repo/releases/download/pretrain/pose_higher_hrnet_w32_512_2.pth
-clear
