@@ -1,0 +1,165 @@
+import argparse
+import os
+import pprint
+
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn.parallel
+import torch.optim
+import torch.utils.data
+import torch.utils.data.distributed
+import torchvision.transforms
+import torch.multiprocessing
+from tqdm import tqdm
+
+import models
+from models.pose_higher_hrnet import PoseHigherResolutionNet
+
+from config import cfg, get_student_cfg
+from core.inference import get_multi_stage_outputs
+from core.inference import aggregate_results
+from core.group import HeatmapParser
+from dataset import make_test_dataloader
+from utils.utils import create_logger
+from utils.utils import get_model_summary
+from utils.vis import save_debug_images
+from utils.vis import save_valid_image
+from utils.transforms import resize_align_multi_scale
+from utils.transforms import get_final_preds
+from utils.transforms import get_multi_scale_size
+
+torch.multiprocessing.set_sharing_strategy('file_system')
+
+
+def get_args():
+    parser = argparse.ArgumentParser(description='Run Linear Classifer.')
+    parser.add_argument('--student_file', required=True,help="Student training config")
+    parser.add_argument('--model_file', required = True, help="Saved training model")
+    parser.add_argument('--print_freq', default=1000)
+    parser.add_argument('--input_folder',default='input')
+    parser.add_argument('--output_folder',default='output')
+    parser.add_argument('--mode',default='valid')
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    args = get_args()
+    # get student config
+    student_cfg = get_student_cfg(cfg,args.student_file)
+    student_cfg.LOG_DIR = args.log
+    student_cfg.PRINT_FREQ = int(args.print_freq)
+    if args.mode == 'test':
+        student_cfg.DATASET.TEST = 'test2017'
+    logger, final_output_dir, tb_log_dir = create_logger(
+        student_cfg, args.student_file, 'valid'
+    )
+
+    final_output_dir = args.output_folder
+
+    logger.info(pprint.pformat(args))
+    logger.info(student_cfg)
+
+    # cudnn related setting
+    cudnn.benchmark = student_cfg.CUDNN.BENCHMARK
+    torch.backends.cudnn.deterministic = student_cfg.CUDNN.DETERMINISTIC
+    torch.backends.cudnn.enabled = student_cfg.CUDNN.ENABLED
+
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    model = PoseHigherResolutionNet(student_cfg)
+    model.load_state_dict(torch.load(args.model_file))
+
+    dump_input = torch.rand(
+        (1, 3, student_cfg.DATASET.INPUT_SIZE, student_cfg.DATASET.INPUT_SIZE)
+    )
+    logger.info(get_model_summary(model, dump_input, verbose=student_cfg.VERBOSE))
+
+    model = torch.nn.DataParallel(model, device_ids=student_cfg.GPUS).cuda()
+    model.eval()
+
+    data_loader, test_dataset = make_test_dataloader(student_cfg)
+
+    transforms = torchvision.transforms.Compose(
+        [
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            )
+        ]
+    )
+
+    parser = HeatmapParser(student_cfg)
+    all_preds = []
+    all_scores = []
+
+    pbar = tqdm(total=len(test_dataset)) if student_cfg.TEST.LOG_PROGRESS else None
+    for i, (images, annos) in enumerate(data_loader):
+        assert 1 == images.size(0), 'Test batch size should be 1'
+
+        image = images[0].cpu().numpy()
+        # size at scale 1.0
+        base_size, center, scale = get_multi_scale_size(
+            image, student_cfg.DATASET.INPUT_SIZE, 1.0, min(student_cfg.TEST.SCALE_FACTOR)
+        )
+
+        with torch.no_grad():
+            final_heatmaps = None
+            tags_list = []
+            for idx, s in enumerate(sorted(student_cfg.TEST.SCALE_FACTOR, reverse=True)):
+                input_size = student_cfg.DATASET.INPUT_SIZE
+                image_resized, center, scale = resize_align_multi_scale(
+                    image, input_size, s, min(student_cfg.TEST.SCALE_FACTOR)
+                )
+                image_resized = transforms(image_resized)
+                image_resized = image_resized.unsqueeze(0).cuda()
+
+                outputs, heatmaps, tags = get_multi_stage_outputs(
+                    student_cfg, model, image_resized, student_cfg.TEST.FLIP_TEST,
+                    student_cfg.TEST.PROJECT2IMAGE, base_size
+                )
+
+                final_heatmaps, tags_list = aggregate_results(
+                    student_cfg, s, final_heatmaps, tags_list, heatmaps, tags
+                )
+
+            final_heatmaps = final_heatmaps / float(len(student_cfg.TEST.SCALE_FACTOR))
+            tags = torch.cat(tags_list, dim=4)
+            grouped, scores = parser.parse(
+                final_heatmaps, tags, student_cfg.TEST.ADJUST, student_cfg.TEST.REFINE
+            )
+
+            final_results = get_final_preds(
+                grouped, center, scale,
+                [final_heatmaps.size(3), final_heatmaps.size(2)]
+            )
+
+        if student_cfg.TEST.LOG_PROGRESS:
+            pbar.update()
+
+        if i % student_cfg.PRINT_FREQ == 0:
+            prefix = '{}_{}'.format(os.path.join(final_output_dir, 'result_valid'), i)
+            # logger.info('=> write {}'.format(prefix))
+            save_valid_image(image, final_results, '{}.jpg'.format(prefix), dataset=test_dataset.name)
+            # save_debug_images(cfg, image_resized, None, None, outputs, prefix)
+
+        all_preds.append(final_results)
+        all_scores.append(scores)
+
+    if student_cfg.TEST.LOG_PROGRESS:
+        pbar.close()
+
+    name_values, _ = test_dataset.evaluate(
+        cfg, all_preds, all_scores, final_output_dir
+    )
+
+    if isinstance(name_values, list):
+        for name_value in name_values:
+            _print_name_value(logger, name_value, cfg.MODEL.NAME)
+    else:
+        _print_name_value(logger, name_values, cfg.MODEL.NAME)
+
+
+if __name__ == '__main__':
+    main()
