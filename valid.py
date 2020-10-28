@@ -37,6 +37,7 @@ def get_args():
     parser.add_argument('--model_file', required = True, help="Saved training model")
     parser.add_argument('--log', default='log',help="log folder")
     parser.add_argument('--print_freq', default=1000)
+    parser.add_argument('--mode',default='valid')
     args = parser.parse_args()
     return args
 
@@ -68,6 +69,8 @@ def main():
     student_cfg = get_student_cfg(cfg,args.student_file)
     student_cfg.LOG_DIR = args.log
     student_cfg.PRINT_FREQ = int(args.print_freq)
+    if args.mode == 'test':
+        student_cfg.DATASET.TEST = 'test2017'
     logger, final_output_dir, tb_log_dir = create_logger(
         student_cfg, args.student_file, 'valid'
     )
