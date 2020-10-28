@@ -21,13 +21,21 @@ Create a file student config like format of test_student.yaml
 
 ```\python
 !python train.py \
-    --student_file experiments/half_teacher_with_KD_weight.yaml \
-    --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher_with_KD_weight
+    --student_file experiments/student2_3M.yaml \
+    --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher
 ```
 
 ## 4. Validation 
 ```python
-!python valid.py --student_file experiments/half_teacher.yaml \
-                --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher_with_KD_weight/valid \
-                --model_file drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher_with_KD_weight/model_best.pth.tar
+!python valid.py --student_file experiments/student2_3M.yaml \
+                --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher/valid \
+                --model_file drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher/model_best.pth.tar
+```
+
+## 5. Testing
+
+```python
+!python valid.py --student_file experiments/student2_3M.yaml \
+                --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher/valid \
+                --model_file drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher/model_best.pth.tar
 ```
