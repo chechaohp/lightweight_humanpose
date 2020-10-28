@@ -1,5 +1,7 @@
 # test_repo
 
+Modified from the original HigherHRNet code
+
 How to run on colab
 
 ## 1. Setting up
