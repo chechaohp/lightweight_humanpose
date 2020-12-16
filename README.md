@@ -7,9 +7,9 @@ How to run on colab
 ## 1. Setting up
 ##### 1. Clone the repository
 ```python
-!git clone https://github.com/chechaohp/test_repo.git
-!cp -r test_repo/* ./
-!rm -rf test_repo
+!git clone https://github.com/chechaohp/lightweight_humanpose.git
+!cp -r lightweight_humanpose/* ./
+!rm -rf lightweight_humanpose
 ```
 ##### 2. Install required packages
 ```python
