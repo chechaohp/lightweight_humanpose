@@ -21,7 +21,7 @@ Create a file student config like format of test_student.yaml
 
 ## 3. Start training
 
-```\python
+```python
 !python train.py \
     --student_file experiments/student2_3M.yaml \
     --log drive/"My Drive"/"Colab Notebooks"/ENGN8501/half_teacher
